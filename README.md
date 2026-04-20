@@ -1,11 +1,23 @@
-# Telegram AI bot (MVP)
+# Telegram AI bot (demo-ready)
 
-A minimal **Python 3.12 + [aiogram](https://docs.aiogram.dev/) 3 + [OpenAI](https://platform.openai.com/)** Telegram bot:
+**Python 3.12 + [aiogram](https://docs.aiogram.dev/) 3 + [OpenAI](https://platform.openai.com/)** — matches a typical “Telegram + OpenAI” freelance brief:
 
-- Natural replies to user text (chat completions)
-- `/rephrase` — reply to a **bot** message, then send `/rephrase` (or send `/rephrase` as a reply to that message) for a simpler rewrite
-- `/escalate` — forwards a notice to Telegram users listed in `ADMIN_TELEGRAM_IDS`
-- Friendly handling of common OpenAI errors (quota, invalid key, network)
+| Feature | Status |
+|--------|--------|
+| ChatGPT-style text chat | Yes (`Chat Completions`) |
+| OpenAI integration | Yes |
+| Multi-language | Yes (model replies in the user’s language; no separate detector) |
+| Step-by-step answers | Yes (system prompt) |
+| **Screenshots / photos** | Yes (**vision** via `image_url` + base64) |
+| **PDF documents** | Yes (**text extract** with [pypdf](https://pypdf.readthedocs.io/), then model) |
+| Rephrase if user is stuck | Yes (`/rephrase` — reply to bot text/caption first) |
+| Escalation to admins | Yes (`/escalate`; optional **reply** to include thread context) |
+| Clean structure | Split modules (`telegram_file`, `pdf_extract`, `openai_client`) |
+| Long answers | Chunked under Telegram’s 4096 char limit |
+
+### Responses API vs Chat Completions
+
+The job text often mentions **“Responses API”**. This repo uses **`chat.completions`** (including **multimodal** images), which is the standard, well-supported path in the official Python SDK and covers the same product needs for this demo. If a client contractually requires the **Responses** endpoint only, that can be swapped in a small follow-up — behavior for users stays the same.
 
 ## Why put this on GitHub?
 
@@ -80,16 +92,13 @@ You can skip activation and call the venv Python directly:
 
 ---
 
-## What this MVP does **not** include yet
+## What this repo does **not** include (optional next work)
 
-Typical **phase 2** items from real job posts:
-
-- Photo / PDF upload and analysis (Vision + parsing)
-- Usage limits per user, subscriptions (e.g. Stripe)
-- Streaming tokens into Telegram messages
-- Persistent conversation storage (database)
-
-Add these incrementally or scope them as a separate milestone for clients.
+- **Usage limits** per user / billing (Stripe)
+- **Streaming** partial tokens into Telegram
+- **Conversation database** (history, admin web UI)
+- **DOCX / XLSX** and other office formats (only **PDF + common images** today)
+- **OCR** for scan-only PDFs (send **photos** of pages instead)
 
 ---
 
@@ -98,7 +107,9 @@ Add these incrementally or scope them as a separate milestone for clients.
 | File | Role |
 |------|------|
 | `bot.py` | Aiogram handlers, middleware, polling entrypoint |
-| `openai_client.py` | Thin wrapper around `chat.completions` |
+| `openai_client.py` | `chat.completions` text + vision (`image_url`) |
+| `telegram_file.py` | Download Telegram file bytes (HTTP) |
+| `pdf_extract.py` | PDF → plain text (best-effort) |
 | `config.py` | Loads settings from `.env` |
 | `requirements.txt` | Dependencies |
 
